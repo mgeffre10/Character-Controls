@@ -35,6 +35,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsWalking;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsDodging;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -75,6 +78,10 @@ protected:
 	void Crouch();
 
 	void StopCrouching();
+
+	void Dodge();
+	
+	void StopDodging();
 
 protected:
 	// APawn interface

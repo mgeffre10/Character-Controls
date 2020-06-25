@@ -48,6 +48,7 @@ AMovementCharacter::AMovementCharacter()
 
 	bIsSprinting = false;
 	bIsWalking = false;
+	bIsDodging = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,6 +69,9 @@ void AMovementCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMovementCharacter::Crouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMovementCharacter::StopCrouching);
+
+	//PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &AMovementCharacter::Dodge);
+	//PlayerInputComponent->BindAction("Dodge", IE_Released, this, &AMovementCharacter::StopDodging);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMovementCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMovementCharacter::MoveRight);
@@ -174,7 +178,6 @@ void AMovementCharacter::Crouch()
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		ACharacter::Crouch(false);
-		UE_LOG(LogTemp, Warning, TEXT("Player is crouching."));
 	}
 }
 
@@ -183,6 +186,18 @@ void AMovementCharacter::StopCrouching()
 	if (bIsCrouched)
 	{
 		ACharacter::UnCrouch(false);
-		UE_LOG(LogTemp, Warning, TEXT("Player is no longer crouching."));
 	}
+}
+
+void AMovementCharacter::Dodge()
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		bIsDodging = true;
+	}
+}
+
+void AMovementCharacter::StopDodging()
+{
+	bIsDodging = false;
 }
