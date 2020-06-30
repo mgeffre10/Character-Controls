@@ -29,14 +29,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsSprinting;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsWalking;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsDodging;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsInCover;
 
 protected:
 
@@ -67,21 +70,27 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+	UFUNCTION(BlueprintCallable)
 	void Sprint();
 
+	UFUNCTION(BlueprintCallable)
 	void StopSprinting();
 
+	UFUNCTION(BlueprintCallable)
 	void Walk();
 
+	UFUNCTION(BlueprintCallable)
 	void StopWalking();
 
 	void Crouch();
 
 	void StopCrouching();
 
-	void Dodge();
-	
-	void StopDodging();
+	UFUNCTION(BlueprintCallable)
+	void Cover();
+
+	UFUNCTION(BlueprintCallable)
+	void UnCover();
 
 protected:
 	// APawn interface

@@ -16,6 +16,8 @@ AMovementCharacter::AMovementCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Overlap);
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -70,9 +72,6 @@ void AMovementCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMovementCharacter::Crouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMovementCharacter::StopCrouching);
 
-	//PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &AMovementCharacter::Dodge);
-	//PlayerInputComponent->BindAction("Dodge", IE_Released, this, &AMovementCharacter::StopDodging);
-
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMovementCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMovementCharacter::MoveRight);
 
@@ -124,6 +123,11 @@ void AMovementCharacter::MoveForward(float Value)
 {
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
+		if (bIsInCover)
+		{
+			AMovementCharacter::UnCover();
+		}
+
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -138,6 +142,11 @@ void AMovementCharacter::MoveRight(float Value)
 {
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
+		if (bIsInCover)
+		{
+			AMovementCharacter::UnCover();
+		}
+
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -177,27 +186,28 @@ void AMovementCharacter::Crouch()
 {
 	if (!GetCharacterMovement()->IsFalling())
 	{
-		ACharacter::Crouch(false);
+		Super::Crouch(false);
 	}
 }
 
 void AMovementCharacter::StopCrouching()
 {
-	if (bIsCrouched)
+	Super::UnCrouch();
+	/*if (bIsCrouched)
 	{
-		ACharacter::UnCrouch(false);
+		Super::UnCrouch(false);
+	}*/
+}
+
+void AMovementCharacter::Cover()
+{
+	if (!GetCharacterMovement()->IsFalling() && !bIsDodging)
+	{
+		bIsInCover = true;
 	}
 }
 
-void AMovementCharacter::Dodge()
+void AMovementCharacter::UnCover()
 {
-	if (!GetCharacterMovement()->IsFalling())
-	{
-		bIsDodging = true;
-	}
-}
-
-void AMovementCharacter::StopDodging()
-{
-	bIsDodging = false;
+	bIsInCover = false;
 }
