@@ -79,4 +79,6 @@ public:
 
 	UFUNCTION()
 	void DisableRotation();
+
+	FVector GetCameraForwardDirection(bool bShouldRotate);
 };

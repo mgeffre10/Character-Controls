@@ -17,7 +17,7 @@ APlayerCameraPawn::APlayerCameraPawn()
 	PrimaryActorTick.bCanEverTick = false;
 
 	bIsRotationEnabled = false;
-	BaseMovementSpeed = 600.f;
+	BaseMovementSpeed = 10.f;
 	SpeedMultiplier = 1.f;
 
 	BaseRotateSpeed = 5.f;
@@ -29,6 +29,10 @@ APlayerCameraPawn::APlayerCameraPawn()
 	MaxZoomValue = 1500.f;
 
 	RootComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+
+	bUseControllerRotationPitch = true;
+	bUseControllerRotationRoll = true;
+	bUseControllerRotationYaw = true;
 
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
@@ -65,6 +69,7 @@ void APlayerCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCameraPawn::MoveRight);
 	PlayerInputComponent->BindAxis("RotateX", this, &APlayerCameraPawn::RotateX);
 	PlayerInputComponent->BindAxis("RotateY", this, &APlayerCameraPawn::RotateY);
+	PlayerInputComponent->BindAxis("Zoom", this, &APlayerCameraPawn::Zoom);
 
 }
 
@@ -73,6 +78,11 @@ void APlayerCameraPawn::MoveForward(float Value)
 	if (Controller && Value != 0.f)
 	{
 		float MovementSpeed = Value * BaseMovementSpeed * SpeedMultiplier;
+
+		FVector ControllerForwardVector = GetCameraForwardDirection(false);
+		FVector NewActorLocation = GetActorLocation() + (ControllerForwardVector * MovementSpeed);
+
+		SetActorLocation(NewActorLocation);
 	}
 }
 
@@ -81,12 +91,11 @@ void APlayerCameraPawn::MoveRight(float Value)
 	if (Controller && Value != 0.f)
 	{
 		float MovementSpeed = Value * BaseMovementSpeed * SpeedMultiplier;
-		float NewActorLocation = GetActorLocation().Y + MovementSpeed;
 
-		FVector ActorLocation = GetActorLocation();
-		ActorLocation.Y = NewActorLocation;
+		FVector ControllerForwardVector = GetCameraForwardDirection(true);
+		FVector NewActorLocation = GetActorLocation() + (ControllerForwardVector * MovementSpeed);
 
-		SetActorLocation(ActorLocation);
+		SetActorLocation(NewActorLocation);
 	}
 }
 
@@ -122,7 +131,11 @@ void APlayerCameraPawn::Zoom(float Value)
 {
 	if (Controller && Value != 0.f)
 	{
+		float ZoomDelta = BaseZoomSpeed * Value * SpeedMultiplier;
+		float NewZoomValue = FMath::Clamp(ZoomDelta + SpringArmComponent->TargetArmLength, MinZoomValue, MaxZoomValue);
 
+		SpringArmComponent->TargetArmLength = NewZoomValue;
+		
 	}
 }
 
@@ -134,4 +147,24 @@ void APlayerCameraPawn::EnableRotation()
 void APlayerCameraPawn::DisableRotation()
 {
 	bIsRotationEnabled = false;
+}
+
+FVector APlayerCameraPawn::GetCameraForwardDirection(bool bShouldRotate)
+{
+	FRotator ControllerRotation = GetControlRotation();
+
+	float ControllerYawRotation = ControllerRotation.Yaw;
+
+	if (bShouldRotate)
+	{
+		// Add 90 degrees to produce the right/left movement
+		ControllerYawRotation += 90.f;
+	}
+
+	FVector ControllerDirectionVector = FRotator(0.f, ControllerYawRotation, 0.f).Vector();
+
+	float ControllerX = ControllerDirectionVector.X;
+	float ControllerY = ControllerDirectionVector.Y;
+
+	return FVector(ControllerX, ControllerY, 0.f);
 }
